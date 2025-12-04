@@ -15,8 +15,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _videoList = MutableLiveData<List<VideoItemEntity>>()
     val videoList: LiveData<List<VideoItemEntity>> = _videoList
 
-    private val _currentPosition = MutableLiveData<Int>(0)
-    val currentPosition: LiveData<Int> = _currentPosition
+    private val _currentPosition = MutableLiveData(0)
 
     private var player: ExoPlayer? = null
 
@@ -44,7 +43,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
 
                     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-                        Log.d("ExoPlayerDebug", "onPlayWhenReadyChanged: $playWhenReady, reason: $reason")
+                        Log.d(
+                            "ExoPlayerDebug",
+                            "onPlayWhenReadyChanged: $playWhenReady, reason: $reason"
+                        )
                     }
 
                     override fun onPlayerError(error: androidx.media3.common.PlaybackException) {

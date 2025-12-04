@@ -9,7 +9,7 @@ import cn.mareep.videofeeddemo.data.local.entity.VideoItemEntity
 class VideoFeedAdapter(private val items: List<VideoItemEntity>) :
     RecyclerView.Adapter<VideoFeedAdapter.VideoViewHolder>() {
 
-    inner class VideoViewHolder(val binding: ItemVideoFeedBinding) :
+    class VideoViewHolder(val binding: ItemVideoFeedBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: VideoItemEntity) {
             binding.tvAuthorName.text = item.authorName
@@ -40,8 +40,6 @@ class VideoFeedAdapter(private val items: List<VideoItemEntity>) :
         // 解绑 player,释放 PlayerView 资源
         holder.binding.videoView.player = null
     }
-
-    fun getVideoItem(position: Int) = items[position]
 
     override fun getItemCount(): Int = items.size
 }
