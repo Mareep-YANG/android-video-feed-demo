@@ -1,10 +1,11 @@
-package cn.mareep.videofeeddemo
+package cn.mareep.videofeeddemo.ui.main
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import cn.mareep.videofeeddemo.R
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

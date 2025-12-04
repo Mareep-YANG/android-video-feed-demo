@@ -1,0 +1,357 @@
+
+ ▐▛███▜▌   Claude Code v2.0.37
+▝▜█████▛▘  Sonnet 4.5 · API Usage Billing
+  ▘▘ ▝▝    /home/mareep/Documents/WorkSpace/AndroidProjects/VideoFeedDemo
+
+> reinit一下CLAUDE.md 
+
+● 我将重新初始化 CLAUDE.md
+  文件。让我先查看当前的内容，然后为您重写这个配置文件。
+
+● Read(CLAUDE.md)
+  ⎿  Read 31 lines
+
+● Search(pattern: "**/build.gradle*")
+  ⎿  Found 2 files (ctrl+o to expand)
+
+● Bash(find /home/mareep/Documents/WorkSpace/AndroidProjects/VideoFeedDemo/app/src/
+      main/java/cn/mareep/videofeeddemo -type d | head -20)
+  ⎿ /home/mareep/Documents/WorkSpace/AndroidProjects/VideoFeedDemo/app/src/mai
+    n/java/cn/mareep/videofeeddemo
+    /home/mareep/Documents/WorkSpace/AndroidProjects/VideoFeedDemo/app/src/mai
+    … +25 lines (ctrl+o to expand)
+
+
+
+● 让我查看更多项目信息以完善配置文件：
+
+● Read(app/build.gradle.kts)
+  ⎿  Read 49 lines
+
+● Bash(find /home/mareep/Documents/WorkSpace/AndroidProjects/VideoFeedDemo/app/src/
+      main/java/cn/mareep/videofeeddemo -name "*.kt" | head -20)
+  ⎿ /home/mareep/Documents/WorkSpace/AndroidProjects/VideoFeedDemo/app/src/mai
+    n/java/cn/mareep/videofeeddemo/ui/main/MainActivity.kt
+
+
+● 现在我了解了您的项目结构。让我为您重新初始化 CLAUDE.md
+  文件，提供一个更完善的配置：
+
+● Write(CLAUDE.md)
+  ⎿  User rejected update to CLAUDE.md
+       14      - 文档和说明
+       15      - 回答技术问题
+       16    
+       17 +  ### 交互原则
+       18 +  
+       19 +  - 提供简洁明了的回答
+       20 +  - 使用中文进行交流
+       21 +  - 引用代码时使用 `文件路径:行号` 格式
+       22 +  - 在分析问题前先理解完整上下文
+       23 +  
+       24 +  ---
+       25 +  
+       26    ## 项目信息
+       27    
+       28    - **项目名称**: VideoFeedDemo
+     ...
+       28    - **目标 SDK**: 36
+       29    - **编译 SDK**: 36
+       30    - **JVM 目标**: 11
+       31 +  - **Kotlin**: 支持
+       32    - **构建工具**: Gradle (Kotlin DSL)
+       33    
+       34    ### 核心依赖
+       35    
+       36 -  - **架构组件**: Jetpack ViewModel + LiveData
+       37 -  - **依赖注入**: Hilt
+       38 -  - **网络请求**: OkHttp
+       39 -  - **图片加载**: Coil
+       40 -  - **视频播放**: ExoPlayer
+       41 -  - **本地存储**: Room Database
+       42 -  - **导航**: Navigation Component
+       43 -  - **UI绑定**: ViewBinding
+       44 -  - **基础库**: AndroidX Core KTX, AppCompat, Material 
+          - Components, ConstraintLayout
+       36 +  - AndroidX Core KTX
+       37 +  - AndroidX AppCompat
+       38 +  - Material Components
+       39 +  - ConstraintLayout
+       40    
+       41 -  ## 架构说明
+       41 +  ---
+       42    
+       43 +  ## 项目架构
+       44 +  
+       45    ### 目录结构
+       46    
+       47    ```
+     ...
+        63    └── utils/                  # 工具类
+        64    ```
+        65    
+        66 -  ### MVVM 分层
+        66 +  ### 架构说明
+        67    
+        68 +  #### MVVM 分层
+        69 +  
+        70    1. **Model (数据层)**
+        71       - `data/local`: 本地数据存储 (Room Database)
+        72 -     - `data/network`: 网络请求 (OkHttp)
+        72 +     - `data/network`: 网络请求 (Retrofit)
+        73       - `data/repository`: 数据仓库，统一数据源
+        74    
+        75    2. **View (视图层)**
+        76 -     - `ui/`: Activity/Fragment (使用 ViewBinding)
+        76 +     - `ui/`: Activity/Fragment
+        77       - 负责 UI 展示和用户交互
+        78 -     - 使用 Navigation Component 进行页面导航
+        79 -     - 图片加载使用 Coil
+        80 -     - 视频播放使用 ExoPlayer
+        78    
+        79    3. **ViewModel (视图模型层)**
+        80 -     - 使用 Jetpack ViewModel
+        81 -     - 通过 LiveData 向 View 暴露数据
+        80       - 连接 View 和 Model
+        81 +     - 管理 UI 相关的数据
+        82       - 处理业务逻辑
+        83    
+        84    4. **其他组件**
+        85 -     - `di/`: 依赖注入配置 (Hilt)
+        85 +     - `di/`: 依赖注入配置 (Hilt/Dagger)
+        86       - `utils/`: 通用工具类
+        87    
+        88 +  ### 设计原则
+        89 +  
+        90 +  - 单一职责原则
+        91 +  - 依赖倒置原则
+        92 +  - 数据单向流动
+        93 +  - Repository 模式作为单一数据源
+        94 +  
+        95    ---
+        96    
+        97 +  ## 代码规范
+        98 +  
+        99 +  ### Kotlin 编码规范
+       100 +  
+       101 +  - 遵循 Kotlin 官方编码规范
+       102 +  - 使用 4 空格缩进
+       103 +  - 类名使用大驼峰命名法 (PascalCase)
+       104 +  - 函数和变量使用小驼峰命名法 (camelCase)
+       105 +  - 常量使用大写下划线命名 (UPPER_SNAKE_CASE)
+       106 +  
+       107 +  ### 命名约定
+       108 +  
+       109 +  - **Activity**: `XxxActivity`
+       110 +  - **Fragment**: `XxxFragment`
+       111 +  - **ViewModel**: `XxxViewModel`
+       112 +  - **Repository**: `XxxRepository`
+       113 +  - **Entity**: `XxxEntity`
+       114 +  - **DTO**: `XxxDto`
+       115 +  - **API**: `XxxApi`
+       116 +  
+       117 +  ---
+       118 +  
+       119 +  ## 开发指南
+       120 +  
+       121 +  ### Git 工作流
+       122 +  
+       123 +  - 主分支: `main`
+       124 +  - 功能分支: `feature/xxx`
+       125 +  - 修复分支: `bugfix/xxx`
+       126 +  
+       127 +  ### 提交信息规范
+       128 +  
+       129 +  遵循 Conventional Commits:
+       130 +  - `feat`: 新功能
+       131 +  - `fix`: 修复问题
+       132 +  - `refactor`: 重构代码
+       133 +  - `docs`: 文档更新
+       134 +  - `style`: 代码格式调整
+       135 +  - `test`: 测试相关
+       136 +  - `chore`: 构建/工具相关
+       137 +  
+       138 +  ---
+       139 +  
+       140    *本文件用于指导 Claude Code 在本项目中的工作方式*
+       141 +  *最后更新: 2025-12-02*
+
+> 保留原有的要求，只更新项目技术相关的部分 
+
+● 我明白了，让我保留原有的工作规则要求，只更新项目技术相关的信息部分。
+
+● Update(CLAUDE.md)
+  ⎿  Updated CLAUDE.md with 55 additions and 2 removals         
+       17    ## 项目信息
+       18    
+       19    - **项目名称**: VideoFeedDemo
+       20 -  - **架构模式**: MVVM
+       20 +  - **项目类型**: Android 应用
+       21 +  - **架构模式**: MVVM (Model-View-ViewModel)
+       22    - **开发语言**: Kotlin
+       23    - **包名**: cn.mareep.videofeeddemo
+       24    
+       25 +  ### 技术栈
+       26 +  
+       27 +  - **最低 SDK**: 24 (Android 7.0)
+       28 +  - **目标 SDK**: 36
+       29 +  - **编译 SDK**: 36
+       30 +  - **JVM 目标**: 11
+       31 +  - **构建工具**: Gradle (Kotlin DSL)
+       32 +  
+       33 +  ### 核心依赖
+       34 +  
+       35 +  - AndroidX Core KTX
+       36 +  - AndroidX AppCompat
+       37 +  - Material Components
+       38 +  - ConstraintLayout
+       39 +  
+       40    ## 架构说明
+       41    
+       42 -  （待补充）
+       42 +  ### 目录结构
+       43    
+       44 +  ```
+       45 +  cn.mareep.videofeeddemo/
+       46 +  ├── data/                    # 数据层
+       47 +  │   ├── local/              # 本地数据
+       48 +  │   │   ├── database/       # 数据库相关
+       49 +  │   │   └── entity/         # 数据实体
+       50 +  │   ├── network/            # 网络层
+       51 +  │   │   ├── api/            # API 接口定义
+       52 +  │   │   ├── dto/            # 数据传输对象
+       53 +  │   │   └── interceptor/    # 网络拦截器
+       54 +  │   └── repository/         # 数据仓库
+       55 +  ├── di/                     # 依赖注入
+       56 +  ├── ui/                     # UI 层
+       57 +  │   └── main/               # 主界面
+       58 +  └── utils/                  # 工具类
+       59 +  ```
+       60 +  
+       61 +  ### MVVM 分层
+       62 +  
+       63 +  1. **Model (数据层)**
+       64 +     - `data/local`: 本地数据存储
+       65 +     - `data/network`: 网络请求
+       66 +     - `data/repository`: 数据仓库，统一数据源
+       67 +  
+       68 +  2. **View (视图层)**
+       69 +     - `ui/`: Activity/Fragment
+       70 +     - 负责 UI 展示和用户交互
+       71 +  
+       72 +  3. **ViewModel (视图模型层)**
+       73 +     - 连接 View 和 Model
+       74 +     - 管理 UI 相关的数据
+       75 +     - 处理业务逻辑
+       76 +  
+       77 +  4. **其他组件**
+       78 +     - `di/`: 依赖注入配置
+       79 +     - `utils/`: 通用工具类
+       80 +  
+       81    ---
+       82    
+       83    *本文件用于指导 Claude Code 在本项目中的工作方式*
+
+     Tip: Use # to memorize shortcut to quickly add to CLAUDE.md
+
+● 完成！我已经更新了 CLAUDE.md
+  文件，保留了原有的工作规则要求（不主动编写代码），并补充了以下内容：
+
+  更新内容：
+  - 技术栈信息（SDK 版本、JVM 目标、构建工具）
+  - 核心依赖列表
+  - 详细的目录结构说明
+  - MVVM 架构的具体分层说明
+
+  文件更新位置：CLAUDE.md:17-83
+
+> - MVVM架构，Jetpack ViewModel + LiveData
+- 依赖注入：Hilt 
+- 网络请求：OkHttp
+- 图片加载：Coil
+- 视频播放：ExoPlayer
+- 本地存储：Room Database
+- 导航：Navigation Component
+- UI：ViewBinding 
+
+● Update(CLAUDE.md)
+  ⎿  Updated CLAUDE.md with 9 additions and 4 removals            
+       32    
+       33    ### 核心依赖
+       34    
+       35 -  - AndroidX Core KTX
+       36 -  - AndroidX AppCompat
+       37 -  - Material Components
+       38 -  - ConstraintLayout
+       35 +  - **架构组件**: Jetpack ViewModel + LiveData
+       36 +  - **依赖注入**: Hilt
+       37 +  - **网络请求**: OkHttp
+       38 +  - **图片加载**: Coil
+       39 +  - **视频播放**: ExoPlayer
+       40 +  - **本地存储**: Room Database
+       41 +  - **导航**: Navigation Component
+       42 +  - **UI绑定**: ViewBinding
+       43 +  - **基础库**: AndroidX Core KTX, AppCompat, Material 
+          + Components, ConstraintLayout
+       44    
+       45    ## 架构说明
+       46    
+
+     Tip: Use # to memorize shortcut to quickly add to CLAUDE.md
+
+● Update(CLAUDE.md)
+  ⎿  Updated CLAUDE.md with 9 additions and 5 removals          
+       66    ### MVVM 分层
+       67    
+       68    1. **Model (数据层)**
+       69 -     - `data/local`: 本地数据存储
+       70 -     - `data/network`: 网络请求
+       69 +     - `data/local`: 本地数据存储 (Room Database)
+       70 +     - `data/network`: 网络请求 (OkHttp)
+       71       - `data/repository`: 数据仓库，统一数据源
+       72    
+       73    2. **View (视图层)**
+       74 -     - `ui/`: Activity/Fragment
+       74 +     - `ui/`: Activity/Fragment (使用 ViewBinding)
+       75       - 负责 UI 展示和用户交互
+       76 +     - 使用 Navigation Component 进行页面导航
+       77 +     - 图片加载使用 Coil
+       78 +     - 视频播放使用 ExoPlayer
+       79    
+       80    3. **ViewModel (视图模型层)**
+       81 +     - 使用 Jetpack ViewModel
+       82 +     - 通过 LiveData 向 View 暴露数据
+       83       - 连接 View 和 Model
+       84 -     - 管理 UI 相关的数据
+       84       - 处理业务逻辑
+       85    
+       86    4. **其他组件**
+       87 -     - `di/`: 依赖注入配置
+       87 +     - `di/`: 依赖注入配置 (Hilt)
+       88       - `utils/`: 通用工具类
+       89    
+       90    ---
+
+     Tip: Use # to memorize shortcut to quickly add to CLAUDE.md
+
+● 完成！已更新 CLAUDE.md 文件，添加了详细的技术栈信息：
+
+  核心依赖部分 (CLAUDE.md:33-43)：
+  - 架构组件：Jetpack ViewModel + LiveData
+  - 依赖注入：Hilt
+  - 网络请求：OkHttp
+  - 图片加载：Coil
+  - 视频播放：ExoPlayer
+  - 本地存储：Room Database
+  - 导航：Navigation Component
+  - UI绑定：ViewBinding
+
+  MVVM 分层说明 (CLAUDE.md:66-88)：
+  - 每一层都标注了使用的具体技术
+  - Model 层：Room Database + OkHttp
+  - View 层：ViewBinding + Navigation Component + Coil + ExoPlayer
+  - ViewModel 层：Jetpack ViewModel + LiveData
+  - 依赖注入：Hilt
+
+
+
