@@ -1,0 +1,140 @@
+
+ ▐▛███▜▌   Claude Code v2.0.19
+▝▜█████▛▘  Sonnet 4.5 · API Usage Billing
+  ▘▘ ▝▝    /Users/leiyang/Documents/WorkSpace/AndroidProjects/android-video-feed-demo
+
+> 进度条怎么支持拖动，用什么控件 
+
+⏺ 在 Android 中，实现可拖动的进度条通常使用 SeekBar 控件。
+
+  SeekBar 基本使用
+
+  1. XML 布局
+
+  <SeekBar
+      android:id="@+id/seekBar"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:max="100"
+      android:progress="0" />
+
+  2. Kotlin 代码
+
+  // 设置进度变化监听
+  seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+      override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+          // 进度变化时调用
+          // fromUser: true 表示用户拖动，false 表示代码设置
+      }
+
+      override fun onStartTrackingTouch(seekBar: SeekBar?) {
+          // 用户开始拖动时调用
+      }
+
+      override fun onStopTrackingTouch(seekBar: SeekBar?) {
+          // 用户停止拖动时调用
+      }
+  })
+
+  视频播放场景的 SeekBar
+
+  对于你的视频播放项目（使用 ExoPlayer），可以这样实现：
+
+  XML 布局示例
+
+  <SeekBar
+      android:id="@+id/videoSeekBar"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="8dp"
+      android:layout_marginEnd="8dp"
+      android:max="100" />
+
+  <TextView
+      android:id="@+id/tvCurrentTime"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="00:00" />
+
+  <TextView
+      android:id="@+id/tvDuration"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="00:00" />
+
+  ViewModel/逻辑处理
+
+  // 监听拖动事件
+  videoSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+      override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+          if (fromUser) {
+              // 计算目标位置（毫秒）
+              val duration = player.duration
+              val position = (duration * progress / 100).toLong()
+              // 更新当前时间显示
+              tvCurrentTime.text = formatTime(position)
+          }
+      }
+
+      override fun onStartTrackingTouch(seekBar: SeekBar?) {
+          // 暂停自动更新进度
+          isUserSeeking = true
+      }
+
+      override fun onStopTrackingTouch(seekBar: SeekBar?) {
+          // 跳转到目标位置
+          val duration = player.duration
+          val position = (duration * seekBar!!.progress / 100).toLong()
+          player.seekTo(position)
+          // 恢复自动更新进度
+          isUserSeeking = false
+      }
+  })
+
+  // 定时更新进度（每秒更新一次）
+  private fun updateProgress() {
+      if (!isUserSeeking) {
+          val position = player.currentPosition
+          val duration = player.duration
+          if (duration > 0) {
+              val progress = (position * 100 / duration).toInt()
+              videoSeekBar.progress = progress
+              tvCurrentTime.text = formatTime(position)
+          }
+      }
+      // 继续下次更新
+      handler.postDelayed(::updateProgress, 1000)
+  }
+
+  Material Design 替代方案
+
+  如果需要更现代的样式，可以使用 Slider（Material Components）：
+
+  <com.google.android.material.slider.Slider
+      android:id="@+id/videoSlider"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:valueFrom="0"
+      android:valueTo="100"
+      android:value="0" />
+
+  videoSlider.addOnChangeListener { slider, value, fromUser ->
+      if (fromUser) {
+          // 处理拖动
+      }
+  }
+
+  videoSlider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+      override fun onStartTrackingTouch(slider: Slider) {}
+      override fun onStopTrackingTouch(slider: Slider) {}
+  })
+
+  总结
+
+  - SeekBar: 标准的可拖动进度条控件
+  - Slider: Material Design 风格的滑动条（需要 Material Components 库）
+  - 关键要处理三个回调：onProgressChanged、onStartTrackingTouch、onStopTrackingTouch
+  - 视频场景需要注意：拖动时暂停自动更新，释放时跳转到目标位置
+
+
+
