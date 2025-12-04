@@ -1,6 +1,7 @@
 package cn.mareep.videofeeddemo.ui.main
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -118,28 +119,42 @@ class MainActivity : AppCompatActivity(), VideoFeedAdapter.VideoInteractionListe
      * 点赞按钮点击
      */
     override fun onLikeClick(videoId: String, position: Int) {
-        // TODO: 实现点赞逻辑
+        Toast.makeText(this, "点赞", Toast.LENGTH_SHORT).show()
     }
 
     /**
      * 评论按钮点击
      */
     override fun onCommentClick(videoId: String, position: Int) {
-        // TODO: 实现评论逻辑（例如跳转到评论页面）
+        Toast.makeText(this, "评论", Toast.LENGTH_SHORT).show()
     }
 
     /**
      * 分享按钮点击
      */
     override fun onShareClick(videoId: String, position: Int) {
-        // TODO: 实现分享逻辑
+        Toast.makeText(this, "分享", Toast.LENGTH_SHORT).show()
     }
 
     /**
      * 作者信息点击
      */
     override fun onAuthorClick(videoId: String, position: Int) {
-        // TODO: 实现跳转到作者主页逻辑
+        Toast.makeText(this, "作者信息", Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * 收藏按钮点击
+     */
+    override fun onFavoriteClick(videoId: String, position: Int) {
+        Toast.makeText(this, "收藏", Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * 关注按钮点击
+     */
+    override fun onFollowClick(videoId: String, position: Int) {
+        Toast.makeText(this, "关注", Toast.LENGTH_SHORT).show()
     }
 
 }

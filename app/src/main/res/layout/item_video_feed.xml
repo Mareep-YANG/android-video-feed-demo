@@ -73,6 +73,7 @@
 
             <!-- 关注按钮 -->
             <ImageView
+                android:id="@+id/btn_follow"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_gravity="bottom|center_horizontal"
@@ -238,6 +239,7 @@
         app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
+            android:id="@+id/bottom_comment"
             android:layout_width="0dp"
             android:layout_height="36dp"
             android:layout_weight="1"

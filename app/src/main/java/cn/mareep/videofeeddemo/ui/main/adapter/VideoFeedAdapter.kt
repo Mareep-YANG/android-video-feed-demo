@@ -42,6 +42,16 @@ class VideoFeedAdapter(
          * 作者信息点击（头像或名字）
          */
         fun onAuthorClick(videoId: String, position: Int)
+
+        /**
+         * 收藏按钮点击
+         */
+        fun onFavoriteClick(videoId: String, position: Int)
+
+        /**
+         * 关注按钮点击
+         */
+        fun onFollowClick(videoId: String, position: Int)
     }
 
     inner class VideoViewHolder(val binding: ItemVideoFeedBinding) :
@@ -100,6 +110,14 @@ class VideoFeedAdapter(
                 }
             }
 
+            // 底部快速评论点击
+            binding.bottomComment.setOnClickListener {
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    listener.onCommentClick(items[position].id, position)
+                }
+            }
+
             // 分享按钮点击
             binding.btnShare.setOnClickListener {
                 val position = bindingAdapterPosition
@@ -113,6 +131,30 @@ class VideoFeedAdapter(
                 val position = bindingAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     listener.onAuthorClick(items[position].id, position)
+                }
+            }
+
+            // 作者头像点击
+            binding.ivAvatar.setOnClickListener {
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    listener.onAuthorClick(items[position].id, position)
+                }
+            }
+
+            // 收藏按钮点击
+            binding.btnFavorite.setOnClickListener {
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    listener.onFavoriteClick(items[position].id, position)
+                }
+            }
+
+            // 关注按钮点击
+            binding.btnFollow.setOnClickListener {
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    listener.onFollowClick(items[position].id, position)
                 }
             }
         }
