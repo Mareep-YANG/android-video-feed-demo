@@ -9,7 +9,7 @@ import androidx.viewpager2.widget.ViewPager2
 import cn.mareep.videofeeddemo.databinding.ActivityMainBinding
 import cn.mareep.videofeeddemo.ui.main.adapter.VideoFeedAdapter
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), VideoFeedAdapter.VideoInteractionListener {
 
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MainViewModel by viewModels()
@@ -26,7 +26,31 @@ class MainActivity : AppCompatActivity() {
         viewModel.initializePlayer()
         observeViewModel()
         setupViewPagerListener()
-        // 绑定
+
+    }
+
+    /**
+     * Activity 失去焦点，但可见
+     */
+    override fun onPause() {
+        super.onPause()
+        viewModel.pausePlayback()
+    }
+
+    /**
+     * Activity进入前台并与用户交互
+     */
+    override fun onResume() {
+        super.onResume()
+        viewModel.resumePlayback()
+    }
+
+    /**
+     * Activity被销毁
+     */
+    override fun onDestroy() {
+        super.onDestroy()
+        // ViewModel 会自动释放播放器资源
     }
 
     /**
@@ -35,9 +59,9 @@ class MainActivity : AppCompatActivity() {
     private fun observeViewModel() {
         // 观察视频列表数据
         viewModel.videoList.observe(this) { videoList ->
-            // 如果是首次初始化
+            // 如果是首次初始化，初始化Adapter
             if (::adapter.isInitialized.not()) {
-                adapter = VideoFeedAdapter(videoList)
+                adapter = VideoFeedAdapter(videoList, this)
                 binding.viewPager.adapter = adapter
 
                 // 初始播放第一个视频
@@ -71,6 +95,8 @@ class MainActivity : AppCompatActivity() {
         viewHolder.binding.videoView.player = viewModel.getPlayer()
         // 播放视频
         viewModel.playVideo(mediaItem)
+        // 开始更新进度
+        viewHolder.startProgressUpdate()
     }
 
     /**
@@ -82,26 +108,38 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Activity 失去焦点，但可见
+     * 视频区域点击 - 切换播放/暂停
      */
-    override fun onPause() {
-        super.onPause()
-        viewModel.pausePlayback()
+    override fun onVideoClick() {
+        viewModel.togglePlayback()
     }
 
     /**
-     * Activity进入前台并与用户交互
+     * 点赞按钮点击
      */
-    override fun onResume() {
-        super.onResume()
-        viewModel.resumePlayback()
+    override fun onLikeClick(videoId: String, position: Int) {
+        // TODO: 实现点赞逻辑
     }
 
     /**
-     * Activity被销毁
+     * 评论按钮点击
      */
-    override fun onDestroy() {
-        super.onDestroy()
-        // ViewModel 会自动释放播放器资源
+    override fun onCommentClick(videoId: String, position: Int) {
+        // TODO: 实现评论逻辑（例如跳转到评论页面）
     }
+
+    /**
+     * 分享按钮点击
+     */
+    override fun onShareClick(videoId: String, position: Int) {
+        // TODO: 实现分享逻辑
+    }
+
+    /**
+     * 作者信息点击
+     */
+    override fun onAuthorClick(videoId: String, position: Int) {
+        // TODO: 实现跳转到作者主页逻辑
+    }
+
 }

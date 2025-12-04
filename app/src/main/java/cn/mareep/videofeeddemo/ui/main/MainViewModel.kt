@@ -77,8 +77,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 "306",
                 "319",
                 "https://vjs.zencdn.net/v/oceans.mp4"
-            ),
-            VideoItemEntity(
+            ), VideoItemEntity(
                 "2",
                 "@TechGuru",
                 "The future of AI is here! Check out this amazing demo. #AI #Tech",
@@ -86,8 +85,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 "1.2k",
                 "5k",
                 "https://media.w3.org/2010/05/sintel/trailer.mp4"
-            ),
-            VideoItemEntity(
+            ), VideoItemEntity(
                 "3",
                 "@NatureLover",
                 "Beautiful sunset in the mountains. 🏔️☀️ #Nature #Travel",
@@ -141,6 +139,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun resumePlayback() {
         player?.playWhenReady = true
+    }
+
+    /**
+     * 切换播放/暂停状态
+     */
+    fun togglePlayback() {
+        player?.let {
+            it.playWhenReady = !it.playWhenReady
+            Log.d("ExoPlayerDebug", "togglePlayback: ${it.playWhenReady}")
+        }
     }
 
     /**
