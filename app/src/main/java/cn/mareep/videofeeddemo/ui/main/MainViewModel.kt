@@ -11,6 +11,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import cn.mareep.videofeeddemo.data.local.entity.VideoItemEntity
 import cn.mareep.videofeeddemo.data.repository.VideoRepository
+import cn.mareep.videofeeddemo.utils.analytics.VideoPerformanceTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,7 +23,6 @@ class MainViewModel @Inject constructor(
 
     private val _videoList = MutableLiveData<List<VideoItemEntity>>()
     val videoList: LiveData<List<VideoItemEntity>> = _videoList
-
     private val _currentPosition = MutableLiveData(0)
 
     private val _isLoading = MutableLiveData(false)
@@ -32,6 +32,9 @@ class MainViewModel @Inject constructor(
     private var currentPage = 0
     private val pageSize = 10
     private var isLastPage = false
+
+    // 性能监控追踪器
+    private var performanceTracker: VideoPerformanceTracker? = null
 
     init {
         loadInitialVideos()
@@ -147,6 +150,21 @@ class MainViewModel @Inject constructor(
      */
     fun prepareVideo(position: Int): MediaItem? {
         val videoItem = _videoList.value?.getOrNull(position) ?: return null
+
+        // 移除旧的性能追踪器
+        performanceTracker?.let {
+            player?.removeListener(it)
+        }
+
+        // 创建新的性能追踪器
+        performanceTracker = VideoPerformanceTracker(
+            videoId = videoItem.id,
+            videoPosition = position
+        )
+
+        // 添加到播放器
+        player?.addListener(performanceTracker!!)
+
         return MediaItem.fromUri(videoItem.videoUrl)
     }
 
@@ -188,10 +206,23 @@ class MainViewModel @Inject constructor(
     }
 
     /**
+     * 获取当前视频的首帧时间
+     * @return 首帧时间（毫秒），如果尚未加载完成则返回 0
+     */
+    fun getCurrentFirstFrameTime(): Long {
+        return performanceTracker?.getFirstFrameTime() ?: 0
+    }
+
+    /**
      * 释放播放器资源
      */
     override fun onCleared() {
         super.onCleared()
+        // 移除性能追踪器
+        performanceTracker?.let {
+            player?.removeListener(it)
+        }
+        performanceTracker = null
         player?.release()
         player = null
     }
