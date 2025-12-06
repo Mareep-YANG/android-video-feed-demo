@@ -9,7 +9,9 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import cn.mareep.videofeeddemo.databinding.ActivityMainBinding
 import cn.mareep.videofeeddemo.ui.main.adapter.VideoFeedAdapter
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity(), VideoFeedAdapter.VideoInteractionListener {
 
     private lateinit var binding: ActivityMainBinding
@@ -69,6 +71,9 @@ class MainActivity : AppCompatActivity(), VideoFeedAdapter.VideoInteractionListe
                 binding.viewPager.post {
                     playVideoAtPosition(0)
                 }
+            } else {
+                // 数据更新时，通知Adapter
+                adapter.updateVideos(videoList)
             }
         }
     }
@@ -82,6 +87,12 @@ class MainActivity : AppCompatActivity(), VideoFeedAdapter.VideoInteractionListe
                 super.onPageSelected(position)
                 viewModel.updateCurrentPosition(position)
                 playVideoAtPosition(position)
+
+                // 分页加载逻辑：当滑动到倒数第3个视频时，加载更多
+                val totalCount = adapter.itemCount
+                if (position >= totalCount - 3) {
+                    viewModel.loadMoreVideos()
+                }
             }
         })
     }

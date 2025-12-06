@@ -11,7 +11,7 @@ import cn.mareep.videofeeddemo.databinding.ItemVideoFeedBinding
 import cn.mareep.videofeeddemo.data.local.entity.VideoItemEntity
 
 class VideoFeedAdapter(
-    private val items: List<VideoItemEntity>, private val listener: VideoInteractionListener
+    private var items: List<VideoItemEntity>, private val listener: VideoInteractionListener
 ) : RecyclerView.Adapter<VideoFeedAdapter.VideoViewHolder>() {
 
     /**
@@ -89,7 +89,7 @@ class VideoFeedAdapter(
                 }
             })
 
-            // 在 ViewHolder 创建时绑定点击事件，只执行一次
+            // 在 ViewHolder 创建时绑定点击事件
             binding.videoView.setOnClickListener {
                 listener.onVideoClick()
             }
@@ -162,9 +162,20 @@ class VideoFeedAdapter(
         fun bind(item: VideoItemEntity) {
             binding.tvAuthorName.text = item.authorName
             binding.tvVideoDesc.text = item.description
-            binding.tvLikeCount.text = item.likeCount
-            binding.tvCommentCount.text = item.commentCount
-            binding.tvFavoriteCount.text = item.favoriteCount
+            binding.tvLikeCount.text = formatStats(item.likeCount)
+            binding.tvCommentCount.text = formatStats(item.commentCount)
+            binding.tvFavoriteCount.text = formatStats(item.favoriteCount)
+        }
+
+        /**
+         * 把点赞、评论、收藏数据转换为相应字符串
+         */
+        private fun formatStats(count: Int): String {
+            return when {
+                count >= 10000 -> String.format("%.1fw", count / 10000.0)
+                count >= 1000 -> String.format("%.1fk", count / 1000.0)
+                else -> count.toString()
+            }
         }
 
         /**
@@ -246,4 +257,16 @@ class VideoFeedAdapter(
     }
 
     override fun getItemCount(): Int = items.size
+
+    /**
+     * 更新视频列表数据
+     */
+    fun updateVideos(newItems: List<VideoItemEntity>) {
+        val oldSize = items.size
+        items = newItems
+        // 通知只有新增的部分发生变化
+        if (newItems.size > oldSize) {
+            notifyItemRangeInserted(oldSize, newItems.size - oldSize)
+        }
+    }
 }

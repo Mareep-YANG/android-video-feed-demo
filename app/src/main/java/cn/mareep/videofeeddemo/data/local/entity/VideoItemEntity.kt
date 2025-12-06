@@ -4,8 +4,8 @@ data class VideoItemEntity(
     val id: String,
     val authorName: String,
     val description: String,
-    val likeCount: String,
-    val commentCount: String,
-    val favoriteCount: String,
+    val likeCount: Int,
+    val commentCount: Int,
+    val favoriteCount: Int,
     val videoUrl: String
 )
