@@ -21,6 +21,7 @@
         app:layout_constraintVertical_bias="0.0"
         app:use_controller="false"
         tools:background="#333333" >
+
     </androidx.media3.ui.PlayerView>
 
     <!-- 播放/缓冲进度条 -->
@@ -251,5 +252,17 @@
             android:textSize="14sp" />
 
     </LinearLayout>
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:contentDescription="@string/video_pause"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:drawable/ic_media_pause"
+        android:visibility="invisible"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">VideoFeedDemo</string>
+    <string name="video_pause">PAUSE</string>
 </resources>

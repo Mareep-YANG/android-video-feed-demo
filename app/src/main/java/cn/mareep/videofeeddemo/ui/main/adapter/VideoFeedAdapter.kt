@@ -3,8 +3,10 @@ package cn.mareep.videofeeddemo.ui.main.adapter
 import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.recyclerview.widget.RecyclerView
 import cn.mareep.videofeeddemo.databinding.ItemVideoFeedBinding
@@ -59,6 +61,7 @@ class VideoFeedAdapter(
 
         private val handler = Handler(Looper.getMainLooper())
         private var isUserSeeking = false // 标记用户是否正在拖动进度条
+        private var playerListener: Player.Listener? = null
 
         private val updateProgressAction = object : Runnable {
             override fun run() {
@@ -92,6 +95,8 @@ class VideoFeedAdapter(
             // 在 ViewHolder 创建时绑定点击事件
             binding.videoView.setOnClickListener {
                 listener.onVideoClick()
+                // 点击视频区域时更新暂停图标显示状态
+                updatePauseIconVisibility()
             }
 
             // 点赞按钮点击
@@ -227,6 +232,55 @@ class VideoFeedAdapter(
         fun stopProgressUpdate() {
             handler.removeCallbacks(updateProgressAction)
         }
+
+        /**
+         * 更新暂停图标的可见性
+         */
+        private fun updatePauseIconVisibility() {
+            val player = binding.videoView.player as? ExoPlayer ?: return
+            // 如果播放器正在播放,隐藏暂停图标;如果暂停,显示暂停图标
+            binding.imageView.visibility = if (player.playWhenReady) {
+                View.INVISIBLE
+            } else {
+                View.VISIBLE
+            }
+        }
+
+        /**
+         * 设置播放器并添加状态监听
+         */
+        fun setPlayer(player: ExoPlayer?) {
+            // 移除旧的监听器
+            playerListener?.let {
+                binding.videoView.player?.removeListener(it)
+            }
+
+            // 设置新的播放器
+            binding.videoView.player = player
+
+            // 添加新的监听器
+            if (player != null) {
+                playerListener = object : Player.Listener {
+                    override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                        // 播放状态改变时更新暂停图标
+                        updatePauseIconVisibility()
+                    }
+                }
+                player.addListener(playerListener!!)
+                // 初始化暂停图标状态
+                updatePauseIconVisibility()
+            }
+        }
+
+        /**
+         * 清理资源
+         */
+        fun cleanup() {
+            playerListener?.let {
+                binding.videoView.player?.removeListener(it)
+            }
+            playerListener = null
+        }
     }
 
     // 初始化ViewHolder
@@ -252,6 +306,8 @@ class VideoFeedAdapter(
         super.onViewDetachedFromWindow(holder)
         // 停止更新进度
         holder.stopProgressUpdate()
+        // 清理监听器
+        holder.cleanup()
         // 解绑 player,释放 PlayerView 资源
         holder.binding.videoView.player = null
     }
