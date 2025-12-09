@@ -12,7 +12,7 @@ import kotlin.math.abs
  * 管理多个 ExoPlayer 实例,实现视频预加载功能
  *
  * @param context Application 上下文
- * @param poolSize 池大小,默认为 3
+ * @param poolSize 池大小
  */
 class ExoPlayerPool(
     private val context: Application,

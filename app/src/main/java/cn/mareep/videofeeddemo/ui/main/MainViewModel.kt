@@ -11,6 +11,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import cn.mareep.videofeeddemo.data.local.entity.VideoItemEntity
 import cn.mareep.videofeeddemo.data.repository.VideoRepository
+import cn.mareep.videofeeddemo.utils.ExoPlayerPool
 import cn.mareep.videofeeddemo.utils.analytics.VideoPerformanceTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -28,57 +29,43 @@ class MainViewModel @Inject constructor(
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private var player: ExoPlayer? = null
+    private var playerPool: ExoPlayerPool? = null
     private var currentPage = 0
     private val pageSize = 10
     private var isLastPage = false
 
-    // 性能监控追踪器
-    private var performanceTracker: VideoPerformanceTracker? = null
+    // 性能监控追踪器 Map (每个位置对应一个追踪器)
+    private val performanceTrackers = mutableMapOf<Int, VideoPerformanceTracker>()
 
     init {
         loadInitialVideos()
     }
 
     /**
-     * 初始化播放器
+     * 初始化播放器池
      */
-    fun initializePlayer(): ExoPlayer {
-        if (player == null) {
-            player = ExoPlayer.Builder(getApplication()).build().apply {
-                repeatMode = Player.REPEAT_MODE_ONE
-                addListener(object : Player.Listener {
-                    override fun onPlaybackStateChanged(playbackState: Int) {
-                        val stateString = when (playbackState) {
-                            ExoPlayer.STATE_IDLE -> "STATE_IDLE"
-                            ExoPlayer.STATE_BUFFERING -> "STATE_BUFFERING"
-                            ExoPlayer.STATE_READY -> "STATE_READY"
-                            ExoPlayer.STATE_ENDED -> "STATE_ENDED"
-                            else -> "UNKNOWN_STATE"
-                        }
-                        Log.d("ExoPlayerDebug", "onPlaybackStateChanged: $stateString")
-                    }
-
-                    override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-                        Log.d(
-                            "ExoPlayerDebug",
-                            "onPlayWhenReadyChanged: $playWhenReady, reason: $reason"
-                        )
-                    }
-
-                    override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
-                        Log.e("ExoPlayerDebug", "onPlayerError: ", error)
-                    }
-                })
-            }
+    fun initializePlayer(): ExoPlayerPool {
+        if (playerPool == null) {
+            playerPool = ExoPlayerPool(getApplication(), poolSize = 3)
+            Log.d("MainViewModel", "ExoPlayerPool 初始化完成")
         }
-        return player!!
+        return playerPool!!
     }
 
     /**
-     * 获取播放器实例
+     * 获取播放器池实例
      */
-    fun getPlayer(): ExoPlayer? = player
+    fun getPlayerPool(): ExoPlayerPool? = playerPool
+
+    /**
+     * 获取指定位置的播放器
+     */
+    fun getPlayer(position: Int): ExoPlayer? = playerPool?.getPlayerForPosition(position)
+
+    /**
+     * 获取当前播放器
+     */
+    fun getCurrentPlayer(): ExoPlayer? = playerPool?.getCurrentPlayer()
 
     /**
      * 加载初始视频数据
@@ -150,67 +137,59 @@ class MainViewModel @Inject constructor(
      */
     fun prepareVideo(position: Int): MediaItem? {
         val videoItem = _videoList.value?.getOrNull(position) ?: return null
+        val mediaItem = MediaItem.fromUri(videoItem.videoUrl)
 
-        // 移除旧的性能追踪器
-        performanceTracker?.let {
-            player?.removeListener(it)
-        }
-
-        // 创建新的性能追踪器
-        performanceTracker = VideoPerformanceTracker(
+        // 创建性能追踪器
+        val tracker = VideoPerformanceTracker(
             videoId = videoItem.id,
             videoPosition = position
         )
+        performanceTrackers[position] = tracker
 
-        // 添加到播放器
-        player?.addListener(performanceTracker!!)
+        // 准备并播放
+        playerPool?.prepareAndPlay(position, mediaItem, tracker)
 
-        return MediaItem.fromUri(videoItem.videoUrl)
+        Log.d("MainViewModel", "准备播放视频: position=$position, url=${videoItem.videoUrl}")
+        return mediaItem
     }
 
     /**
-     * 播放视频
+     * 预加载指定位置的视频
      */
-    fun playVideo(mediaItem: MediaItem) {
-        player?.let {
-            it.stop()
-            it.clearMediaItems()
-            it.setMediaItem(mediaItem)
-            it.prepare()
-            it.playWhenReady = true
-        }
+    fun preloadVideo(position: Int) {
+        val videoItem = _videoList.value?.getOrNull(position) ?: return
+        val mediaItem = MediaItem.fromUri(videoItem.videoUrl)
+
+        playerPool?.preloadVideo(position, mediaItem)
+        Log.d("MainViewModel", "预加载视频: position=$position, url=${videoItem.videoUrl}")
     }
 
     /**
      * 暂停播放
      */
     fun pausePlayback() {
-        player?.playWhenReady = false
+        playerPool?.pauseAll()
     }
 
     /**
      * 恢复播放
      */
     fun resumePlayback() {
-        player?.playWhenReady = true
+        playerPool?.resumeCurrent()
     }
 
     /**
      * 切换播放/暂停状态
      */
     fun togglePlayback() {
-        player?.let {
-            it.playWhenReady = !it.playWhenReady
-            Log.d("ExoPlayerDebug", "togglePlayback: ${it.playWhenReady}")
-        }
+        playerPool?.togglePlayback()
     }
 
     /**
-     * 获取当前视频的首帧时间
-     * @return 首帧时间（毫秒），如果尚未加载完成则返回 0
+     * 获取播放器池状态（调试用）
      */
-    fun getCurrentFirstFrameTime(): Long {
-        return performanceTracker?.getFirstFrameTime() ?: 0
+    fun getPoolStatus(): String {
+        return playerPool?.getPoolStatus() ?: "ExoPlayerPool 未初始化"
     }
 
     /**
@@ -218,12 +197,14 @@ class MainViewModel @Inject constructor(
      */
     override fun onCleared() {
         super.onCleared()
-        // 移除性能追踪器
-        performanceTracker?.let {
-            player?.removeListener(it)
+        // 清理所有性能追踪器
+        performanceTrackers.forEach { (position, tracker) ->
+            playerPool?.removeListener(position, tracker)
         }
-        performanceTracker = null
-        player?.release()
-        player = null
+        performanceTrackers.clear()
+        // 释放播放器池
+        playerPool?.releaseAll()
+        playerPool = null
+        Log.d("MainViewModel", "释放播放器池资源")
     }
 }

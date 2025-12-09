@@ -112,6 +112,9 @@ class MainActivity : AppCompatActivity(), VideoFeedAdapter.VideoInteractionListe
                 viewModel.updateCurrentPosition(position)
                 playVideoAtPosition(position)
 
+                // 预加载下一个视频
+                preloadNextVideo(position)
+
                 // 分页加载逻辑：当滑动到倒数第3个视频时，加载更多
                 val totalCount = adapter.itemCount
                 if (position >= totalCount - 3) {
@@ -127,6 +130,22 @@ class MainActivity : AppCompatActivity(), VideoFeedAdapter.VideoInteractionListe
                     )
                 }
             }
+
+            override fun onPageScrollStateChanged(state: Int) {
+                super.onPageScrollStateChanged(state)
+                // 监听滑动状态变化,可用于进一步优化预加载
+                when (state) {
+                    ViewPager2.SCROLL_STATE_DRAGGING -> {
+                        // 用户开始拖动
+                    }
+                    ViewPager2.SCROLL_STATE_SETTLING -> {
+                        // 滑动中
+                    }
+                    ViewPager2.SCROLL_STATE_IDLE -> {
+                        // 滑动结束
+                    }
+                }
+            }
         })
     }
 
@@ -134,14 +153,22 @@ class MainActivity : AppCompatActivity(), VideoFeedAdapter.VideoInteractionListe
      * 在指定位置播放视频
      */
     private fun playVideoAtPosition(position: Int) {
-        val mediaItem = viewModel.prepareVideo(position) ?: return
+        viewModel.prepareVideo(position)
         val viewHolder = getViewHolderAtPosition(position) ?: return
         // 使用 setPlayer 方法绑定播放器并添加状态监听
-        viewHolder.setPlayer(viewModel.getPlayer())
-        // 播放视频
-        viewModel.playVideo(mediaItem)
+        viewHolder.setPlayer(viewModel.getCurrentPlayer())
         // 开始更新进度
         viewHolder.startProgressUpdate()
+    }
+
+    /**
+     * 预加载下一个视频
+     */
+    private fun preloadNextVideo(currentPosition: Int) {
+        val nextPosition = currentPosition + 1
+        if (nextPosition < adapter.itemCount) {
+            viewModel.preloadVideo(nextPosition)
+        }
     }
 
     /**

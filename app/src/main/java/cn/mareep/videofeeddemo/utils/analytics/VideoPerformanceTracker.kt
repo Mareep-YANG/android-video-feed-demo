@@ -21,20 +21,26 @@ class VideoPerformanceTracker(
     // 性能指标记录
     private val metrics = Analytics.PerformanceMetrics()
     private var bufferingStartTime: Long = 0
-    private var videoStartTime: Long = System.currentTimeMillis() // 创建时立即记录开始时间
+    private var videoStartTime: Long = System.currentTimeMillis() // Tracker 创建时立即记录（用户看到视频的时间）
+    private var playReadyTime: Long = 0 // 播放器准备好可以播放的时间
     private var isFirstFrame = true
     private var playStartTime: Long = 0
     private var firstFrameTime: Long = 0 // 记录首帧时间
+
+    init {
+        Log.d(TAG, "VideoPerformanceTracker 创建: videoId=$videoId, position=$videoPosition, createTime=$videoStartTime")
+    }
 
     /**
      * 播放状态改变
      */
     override fun onPlaybackStateChanged(playbackState: Int) {
         val currentTime = System.currentTimeMillis()
+        Log.d(TAG, "onPlaybackStateChanged 被调用: position=$videoPosition, state=$playbackState, isFirstFrame=$isFirstFrame")
 
         when (playbackState) {
             Player.STATE_IDLE -> {
-                Log.d(TAG, "播放器状态: IDLE")
+                Log.d(TAG, "播放器状态: IDLE, position=$videoPosition")
             }
 
             Player.STATE_BUFFERING -> {
@@ -48,7 +54,7 @@ class VideoPerformanceTracker(
                         put(Analytics.ParamKey.TIMESTAMP, currentTime)
                     }
                 )
-                Log.d(TAG, "缓冲开始")
+                Log.d(TAG, "缓冲开始, position=$videoPosition")
             }
 
             Player.STATE_READY -> {
@@ -64,11 +70,16 @@ class VideoPerformanceTracker(
                             put(Analytics.ParamKey.BUFFERING_COUNT, metrics.getMetrics()["buffering_count"] ?: 0)
                         }
                     )
-                    Log.d(TAG, "缓冲结束，耗时: ${bufferingDuration}ms")
+                    Log.d(TAG, "缓冲结束，耗时: ${bufferingDuration}ms, position=$videoPosition")
                     bufferingStartTime = 0
                 }
 
-                // 记录首帧时间
+                // 记录播放器准备完成的时间
+                if (playReadyTime == 0L) {
+                    playReadyTime = currentTime
+                }
+
+                // 只有在播放器真正开始播放时才记录
                 if (isFirstFrame) {
                     isFirstFrame = false
                     firstFrameTime = currentTime - videoStartTime
@@ -80,10 +91,6 @@ class VideoPerformanceTracker(
                             put("first_frame_time", firstFrameTime)
                         }
                     )
-                    Log.i(TAG, "========================================")
-                    Log.i(TAG, "FIRST FRAME TIME: ${firstFrameTime}ms")
-                    Log.i(TAG, "Video ID: $videoId, Position: $videoPosition")
-                    Log.i(TAG, "========================================")
                 }
 
                 Analytics.track(
@@ -94,7 +101,6 @@ class VideoPerformanceTracker(
 
             Player.STATE_ENDED -> {
                 Log.d(TAG, "播放结束")
-                // 可以在这里上报完整的性能指标
                 reportFinalMetrics()
             }
         }
@@ -117,7 +123,7 @@ class VideoPerformanceTracker(
                     put("play_reason", reason)
                 }
             )
-            Log.d(TAG, "播放开始")
+            Log.d(TAG, "播放开始, position=$videoPosition, reason=$reason")
         } else {
             // 暂停播放
             if (playStartTime > 0) {
@@ -129,7 +135,7 @@ class VideoPerformanceTracker(
                         put("pause_reason", reason)
                     }
                 )
-                Log.d(TAG, "播放暂停，播放时长: ${playDuration}ms")
+                Log.d(TAG, "播放暂停，播放时长: ${playDuration}ms, position=$videoPosition")
             }
         }
     }
@@ -150,7 +156,7 @@ class VideoPerformanceTracker(
     }
 
     /**
-     * 位置变化（可用于检测 seek 操作）
+     * 位置变化
      */
     override fun onPositionDiscontinuity(
         oldPosition: Player.PositionInfo,
