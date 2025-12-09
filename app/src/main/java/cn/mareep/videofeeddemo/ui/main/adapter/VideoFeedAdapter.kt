@@ -1,5 +1,6 @@
 package cn.mareep.videofeeddemo.ui.main.adapter
 
+import android.content.res.Configuration
 import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
@@ -63,6 +64,14 @@ class VideoFeedAdapter(
         private var isUserSeeking = false // 标记用户是否正在拖动进度条
         private var playerListener: Player.Listener? = null
 
+        // 横屏时控件的显示状态
+        private var isControlsVisible = true
+
+        // 自动隐藏控件的延迟任务
+        private val hideControlsAction = Runnable {
+            hideControls()
+        }
+
         private val updateProgressAction = object : Runnable {
             override fun run() {
                 updateProgress()
@@ -94,9 +103,19 @@ class VideoFeedAdapter(
 
             // 在 ViewHolder 创建时绑定点击事件
             binding.videoView.setOnClickListener {
-                listener.onVideoClick()
-                // 点击视频区域时更新暂停图标显示状态
-                updatePauseIconVisibility()
+                // 检查是否是横屏
+                val isLandscape = binding.root.context.resources.configuration.orientation ==
+                    Configuration.ORIENTATION_LANDSCAPE
+
+                if (isLandscape) {
+                    // 横屏时：切换控件显示/隐藏
+                    toggleControls()
+                } else {
+                    // 竖屏时：切换播放/暂停
+                    listener.onVideoClick()
+                    // 点击视频区域时更新暂停图标显示状态
+                    updatePauseIconVisibility()
+                }
             }
 
             // 点赞按钮点击
@@ -170,6 +189,24 @@ class VideoFeedAdapter(
             binding.tvLikeCount.text = formatStats(item.likeCount)
             binding.tvCommentCount.text = formatStats(item.commentCount)
             binding.tvFavoriteCount.text = formatStats(item.favoriteCount)
+
+            // 检查当前屏幕方向，确保控件显示状态正确
+            val isLandscape = binding.root.context.resources.configuration.orientation ==
+                Configuration.ORIENTATION_LANDSCAPE
+
+            if (isLandscape) {
+                // 横屏：默认显示控件（小尺寸）
+                isControlsVisible = true
+                showControls()
+            } else {
+                // 竖屏：确保所有控件可见
+                isControlsVisible = true
+                binding.layoutInfo.visibility = View.VISIBLE
+                binding.layoutActions?.visibility = View.VISIBLE
+                binding.seekBar.visibility = View.VISIBLE
+                // 取消任何自动隐藏任务
+                handler.removeCallbacks(hideControlsAction)
+            }
         }
 
         /**
@@ -280,6 +317,56 @@ class VideoFeedAdapter(
                 binding.videoView.player?.removeListener(it)
             }
             playerListener = null
+            // 清理自动隐藏任务
+            handler.removeCallbacks(hideControlsAction)
+        }
+
+        /**
+         * 切换控件显示/隐藏
+         */
+        private fun toggleControls() {
+            if (isControlsVisible) {
+                hideControls()
+            } else {
+                showControls()
+                // 显示后3秒自动隐藏
+                scheduleHideControls()
+            }
+        }
+
+        /**
+         * 显示控件
+         */
+        private fun showControls() {
+            isControlsVisible = true
+            binding.layoutInfo.visibility = View.VISIBLE
+            binding.layoutActions?.visibility = View.VISIBLE
+            binding.seekBar.visibility = View.VISIBLE
+        }
+
+        /**
+         * 隐藏控件
+         */
+        private fun hideControls() {
+            isControlsVisible = false
+            binding.layoutInfo.visibility = View.GONE
+            binding.layoutActions?.visibility = View.GONE
+            binding.seekBar.visibility = View.GONE
+        }
+
+        /**
+         * 安排自动隐藏控件（3秒后）
+         */
+        private fun scheduleHideControls() {
+            handler.removeCallbacks(hideControlsAction)
+            handler.postDelayed(hideControlsAction, 3000)
+        }
+
+        /**
+         * 取消自动隐藏
+         */
+        private fun cancelHideControls() {
+            handler.removeCallbacks(hideControlsAction)
         }
     }
 

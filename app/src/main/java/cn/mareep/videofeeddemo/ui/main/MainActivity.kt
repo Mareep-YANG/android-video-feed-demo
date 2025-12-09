@@ -1,6 +1,8 @@
 package cn.mareep.videofeeddemo.ui.main
 
+import android.content.res.Configuration
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -22,6 +24,9 @@ class MainActivity : AppCompatActivity(), VideoFeedAdapter.VideoInteractionListe
 
     // 视频观看行为追踪器
     private lateinit var videoViewTracker: VideoViewTracker
+
+    // 全屏状态跟踪
+    private var isFullscreen = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,6 +70,121 @@ class MainActivity : AppCompatActivity(), VideoFeedAdapter.VideoInteractionListe
             videoViewTracker.reportCurrentVideoEnd()
         }
         // ViewModel 会自动释放播放器资源
+    }
+
+    /**
+     * 处理配置变更（屏幕旋转）
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+        when (newConfig.orientation) {
+            Configuration.ORIENTATION_LANDSCAPE -> {
+                // 进入横屏，启用全屏模式
+                enterFullscreen()
+            }
+            Configuration.ORIENTATION_PORTRAIT -> {
+                // 恢复竖屏，退出全屏模式
+                exitFullscreen()
+            }
+        }
+
+        // 强制刷新布局以应用正确的横屏/竖屏布局
+        if (::adapter.isInitialized) {
+            val currentPosition = binding.viewPager.currentItem
+            val videoList = viewModel.videoList.value ?: return
+
+            // 暂停当前播放
+            viewModel.pausePlayback()
+
+            // 获取 RecyclerView 并清空缓存池
+            val recyclerView = binding.viewPager.getChildAt(0) as? RecyclerView
+            recyclerView?.recycledViewPool?.clear()
+
+            // 重新创建 Adapter
+            adapter = VideoFeedAdapter(videoList, this)
+            binding.viewPager.adapter = adapter
+
+            // 恢复到当前位置
+            binding.viewPager.setCurrentItem(currentPosition, false)
+
+            // 等待布局完成后重新播放
+            binding.viewPager.postDelayed({
+                playVideoAtPosition(currentPosition)
+                viewModel.resumePlayback()
+            }, 150)
+        }
+    }
+
+    /**
+     * 进入全屏模式
+     */
+    private fun enterFullscreen() {
+        isFullscreen = true
+
+        // 隐藏 ActionBar
+        supportActionBar?.hide()
+
+        // 隐藏 MainActivity 的 top bar（搜索栏、返回按钮等）
+        binding.btnBack.visibility = View.GONE
+        binding.tvSearchBar.visibility = View.GONE
+        binding.btnMore.visibility = View.GONE
+
+        // 隐藏系统栏
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            // Android 11+ 使用新API
+            window.insetsController?.let { controller ->
+                controller.hide(
+                    android.view.WindowInsets.Type.statusBars()
+                            or android.view.WindowInsets.Type.navigationBars()
+                )
+                controller.systemBarsBehavior =
+                    android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        } else {
+            // Android 11 以下使用传统方式
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = (
+                    View.SYSTEM_UI_FLAG_FULLSCREEN
+                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                            or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    )
+        }
+
+        // 禁用 ViewPager2 滑动（横屏时专注观看当前视频）
+        binding.viewPager.isUserInputEnabled = false
+    }
+
+    /**
+     * 退出全屏模式
+     */
+    private fun exitFullscreen() {
+        isFullscreen = false
+
+        // 显示 ActionBar
+        supportActionBar?.show()
+
+        // 显示 MainActivity 的 top bar
+        binding.btnBack.visibility = View.VISIBLE
+        binding.tvSearchBar.visibility = View.VISIBLE
+        binding.btnMore.visibility = View.VISIBLE
+
+        // 显示系统栏
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            window.insetsController?.show(
+                android.view.WindowInsets.Type.statusBars()
+                        or android.view.WindowInsets.Type.navigationBars()
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+        }
+
+        // 恢复 ViewPager2 滑动
+        binding.viewPager.isUserInputEnabled = true
     }
 
     /**
@@ -152,9 +272,20 @@ class MainActivity : AppCompatActivity(), VideoFeedAdapter.VideoInteractionListe
     /**
      * 在指定位置播放视频
      */
-    private fun playVideoAtPosition(position: Int) {
+    private fun playVideoAtPosition(position: Int, retryCount: Int = 0) {
         viewModel.prepareVideo(position)
-        val viewHolder = getViewHolderAtPosition(position) ?: return
+        val viewHolder = getViewHolderAtPosition(position)
+
+        if (viewHolder == null) {
+            // ViewHolder 还没有创建完成，重试最多3次
+            if (retryCount < 3) {
+                binding.viewPager.postDelayed({
+                    playVideoAtPosition(position, retryCount + 1)
+                }, 50)
+            }
+            return
+        }
+
         // 使用 setPlayer 方法绑定播放器并添加状态监听
         viewHolder.setPlayer(viewModel.getCurrentPlayer())
         // 开始更新进度
