@@ -181,6 +181,27 @@ class VideoFeedAdapter(
                     listener.onFollowClick(items[position].id, position)
                 }
             }
+
+            // 右侧操作栏长按事件 - 二倍速播放
+            binding.layoutActions.setOnTouchListener { view, event ->
+                when (event.action) {
+                    android.view.MotionEvent.ACTION_DOWN -> {
+                        // 按下时,设置二倍速
+                        setPlaybackSpeed(2.0f)
+                        showSpeedIndicator()
+                        true // 返回 true 拦截事件,不让子 View 和背景处理
+                    }
+                    android.view.MotionEvent.ACTION_UP,
+                    android.view.MotionEvent.ACTION_CANCEL -> {
+                        // 松开时,恢复正常速度
+                        setPlaybackSpeed(1.0f)
+                        hideSpeedIndicator()
+                        view.performClick() // 处理无障碍点击
+                        true // 返回 true 拦截事件,防止触发背景的暂停逻辑
+                    }
+                    else -> false
+                }
+            }
         }
 
         fun bind(item: VideoItemEntity) {
@@ -367,6 +388,29 @@ class VideoFeedAdapter(
          */
         private fun cancelHideControls() {
             handler.removeCallbacks(hideControlsAction)
+        }
+
+        /**
+         * 设置播放速度
+         * @param speed 播放速度倍率 (1.0 = 正常速度, 2.0 = 二倍速)
+         */
+        private fun setPlaybackSpeed(speed: Float) {
+            val player = binding.videoView.player as? ExoPlayer ?: return
+            player.setPlaybackSpeed(speed)
+        }
+
+        /**
+         * 显示倍速指示器
+         */
+        private fun showSpeedIndicator() {
+            binding.tvSpeedIndicator?.visibility = View.VISIBLE
+        }
+
+        /**
+         * 隐藏倍速指示器
+         */
+        private fun hideSpeedIndicator() {
+            binding.tvSpeedIndicator?.visibility = View.INVISIBLE
         }
     }
 
